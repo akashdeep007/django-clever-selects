@@ -32,8 +32,8 @@ class ChainedModelChoiceField(ModelChoiceField):
         self.parent_field = parent_field
         self.ajax_url = ajax_url
         self.model = model
-        #self.queryset = model.objects.all()  # Large querysets could take long time to load all values (django-cities)
-        self.queryset = model.objects.none()
+        self.queryset = model.objects.all()  # Large querysets could take long time to load all values (django-cities)
+        #self.queryset = model.objects.none()
         self.empty_label = empty_label
 
         defaults = {

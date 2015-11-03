@@ -1,28 +1,32 @@
-$(document).ready(function() {
-    $.fn.loadChildChoices = function(child) {
+jQuery(window).load(function() {
+    jQuery.fn.loadChildChoices = function(child, load_first) {
 //        if (chained_id.indexOf('__prefix__') != -1) {
-//            chained_id = chained_id.replace('__prefix__', $(this).attr('name').split('-')[1]);
-//            $(this).attr('chained_id', chained_id);
+//            chained_id = chained_id.replace('__prefix__', jQuery(this).attr('name').split('-')[1]);
+//            jQuery(this).attr('chained_id', chain<F3><F4><F3><F4>ed_id);
 //        }
 
         var valuefield = child;
         var ajax_url = valuefield.attr('ajax_url');
         var empty_label = valuefield.attr('empty_label') || '--------';
+        if(load_first && valuefield.val()){
+            valuefield.parent().append('<input type="hidden" value="'+valuefield.val()+'" id="hidden_'+valuefield.attr("id")+'">');
+            return true;
+        }
 
 //        console.log(ajax_url);
 //        console.log({
 //            field: valuefield.attr('name'),
-//            parent_field: $(this).attr('name'),
-//            parent_value: $(this).val(),
+//            parent_field: jQuery(this).attr('name'),
+//            parent_value: jQuery(this).val(),
 //            empty_label: empty_label
 //        });
 
-        $.get(
+        jQuery.get(
             ajax_url,
             {
                 field: valuefield.attr('name'),
-                parent_field: $(this).attr('name'),
-                parent_value: $(this).val()
+                parent_field: jQuery(this).attr('name'),
+                parent_value: jQuery(this).val()
             },
             function(j) {
                 var options = '';
@@ -30,7 +34,25 @@ $(document).ready(function() {
                     options += '<option value="">' + empty_label + '</option>';
 //                }
                 for (var i = 0; i < j.length; i++) {
-                    options += '<option value="' + j[i][0] + '">' + j[i][1] + '</option>';
+                    if(jQuery('#hidden_'+valuefield.attr('id')) && jQuery('#hidden_'+valuefield.attr('id')).val() == j[i][0]){
+                        options += '<option value="' + j[i][0] + '" selected>' + j[i][1] + '</option>';
+                    }else{
+                        options += '<option value="' + j[i][0] + '">' + j[i][1] + '</option>';
+                    }
+                }
+                if(j.length < 1){
+                    if(valuefield.parent().parent().parent().hasClass('grp-row')){
+                        valuefield.parent().parent().parent().hide();
+                    }else{
+                        valuefield.parent().parent().parent().parent().hide();
+                    }
+                }
+                else{
+                    if(valuefield.parent().parent().parent().hasClass('grp-row')){
+                        valuefield.parent().parent().parent().show();
+                    }else{
+                        valuefield.parent().parent().parent().parent().show();
+                    }
                 }
                 valuefield.html(options);
                 valuefield.trigger('change');
@@ -41,18 +63,19 @@ $(document).ready(function() {
         );
     };
 
-    $.fn.loadAllChainedChoices = function() {
-        var chained_ids = $(this).attr('chained_ids').split(",");
+    jQuery.fn.loadAllChainedChoices = function(load_first) {
+        var chained_ids = jQuery(this).attr('chained_ids').split(",");
 
         for (var i = 0; i < chained_ids.length; i++) {
             var chained_id = chained_ids[i];
 
-            $(this).loadChildChoices($('#' + chained_id));
+            jQuery(this).loadChildChoices(jQuery('#' + chained_id), load_first);
         }
     };
 
-    $('.chained-parent-field').change(function() {
-        $(this).loadAllChainedChoices();
+    jQuery('.chained-parent-field').loadAllChainedChoices(true);
+    jQuery('.chained-parent-field').change(function() {
+        jQuery(this).loadAllChainedChoices();
     });
-//    }).change();  // Use change only if really necessary. Be aware of using it in POST requests!
+//    }).change(); # Use change only if really necessary. Be aware of using it in POST requests!
 });

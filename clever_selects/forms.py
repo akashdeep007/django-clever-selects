@@ -42,7 +42,7 @@ class ChainedChoicesMixin(object):
 
             for oldest_parent_field_name in oldest_parent_field_names:
                 try:
-                    self.fields[oldest_parent_field_name].initial = getattr(self, '%s' % oldest_parent_field_name)
+                    self.fields[oldest_parent_field_name].initial = getattr(self.instance, '%s' % oldest_parent_field_name)
                 except AttributeError:
                     pass
 
@@ -76,7 +76,7 @@ class ChainedChoicesMixin(object):
                         parent_value = kwargs.get('%s-%s' % (self.prefix, field.parent_field), None)
                         field_value = kwargs.get('%s-%s' % (self.prefix, field_name), None)
                 else:
-                    parent_value = getattr(self, '%s' % field.parent_field, None)
+                    parent_value = getattr(self.instance, '%s' % field.parent_field, None)
                     field_value = getattr(self, '%s' % field_name, None)
 
                 field.choices = [('', field.empty_label)]
@@ -175,18 +175,9 @@ class ChainedChoicesForm(forms.Form, ChainedChoicesMixin):
     If there is request POST data in *args (i.e. form validation was invalid)
     then the options will be loaded when the form is built.
     """
-    def __init__(self, language_code=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(ChainedChoicesForm, self).__init__(*args, **kwargs)
-        self.language_code = language_code
         self.init_chained_choices(*args, **kwargs)
-
-    def is_valid(self):
-        if self.language_code:
-            # response is not translated to requested language code :/
-            # so translation is triggered manually
-            from django.utils.translation import activate
-            activate(self.language_code)
-        return super(ChainedChoicesForm, self).is_valid()
 
 
 class ChainedChoicesModelForm(forms.ModelForm, ChainedChoicesMixin):
@@ -195,15 +186,7 @@ class ChainedChoicesModelForm(forms.ModelForm, ChainedChoicesMixin):
     If there is already an instance (i.e. editing)
     then the options will be loaded when the form is built.
     """
-    def __init__(self, language_code=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(ChainedChoicesModelForm, self).__init__(*args, **kwargs)
-        self.language_code = language_code
         self.init_chained_choices(*args, **kwargs)
 
-    def is_valid(self):
-        if self.language_code:
-            # response is not translated to requested language code :/
-            # so translation is triggered manually
-            from django.utils.translation import activate
-            activate(self.language_code)
-        return super(ChainedChoicesModelForm, self).is_valid()
